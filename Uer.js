@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Uer/U校园/UTALK/网课答案显示/自动填入
 // @namespace    MrDgbot
-// @version      1.9.2
+// @version      2.0.0
 // @description  [√自动填入答案【可关闭】【默认延迟0.5秒】][√窗口显示答案][√作业与测试][√视听说单元测试][√UTALK]【禁止对源码进行修改，发布，禁止抄袭任意代码】（未适配的请联系）
 // @author       MrDgbot
 // @compatible   Chrome
