@@ -20,8 +20,8 @@
 // @grant        GM_info
 // @grant        unsafeWindow
 // @run-at       document-start
-// @updateURL    https://cdn.jsdelivr.net/gh/MrDgbot/Uer@mnew/Uer.js
-// @downloadURL  https://cdn.jsdelivr.net/gh/MrDgbot/Uer@mnew/Uer.js
+// @updateURL    https://cdn.jsdelivr.net/gh/MrDgbot/Uer@xnew/Uer.js
+// @downloadURL  https://cdn.jsdelivr.net/gh/MrDgbot/Uer@xnew/Uer.js
 // @supportURL   https://greasyfork.org/zh-CN/scripts/397517/feedback
 // ==/UserScript==
 var url = window.location.href;
@@ -222,7 +222,7 @@ function appendAnswerView(answerText) {
         if (setting.cache.count++ % 5 == 0) {
             let start = Math.floor(setting.cache.count / 5) * 5 + 1;
             $('<br><span row="' + Math.floor(setting.cache.count / 5) + '">' + start
-                + '. </span><span class="answerText">' + answerText + '</span>').appendTo(view.answerView);
+              + '. </span><span class="answerText">' + answerText + '</span>').appendTo(view.answerView);
         } else {
             let start = Math.floor(setting.cache.count / 5) * 5 + 1,
                 end = start + setting.cache.count % 5;
@@ -531,9 +531,9 @@ function analyseAnswers_common(resolve, answer){
         for (let index in getanswer) {
             let answerss = getanswer[index];
             if(answerss.indexOf(",") != -1){
-                    answerss = answerss.split(",");
-                    answerss = answerss[0];
-                }
+                answerss = answerss.split(",");
+                answerss = answerss[0];
+            }
             setTimeout(function(){doInput(e[index], answerss)},328+index*dalaytime)
         }
     } else if (answerSheetType == 3) {//真填空
@@ -649,10 +649,19 @@ function getxtoekn (){
                                     if(data.status == 0){
                                         console.log(jwtToken,data.token)
                                         msg("初始化完成")
-                                        GM_setValue('xtoken', jwtToken)
-                                        GM_setValue('utoken', data.token)
-                                        GM_setValue('score', data.score)
-                                        console.log("积分",setting.score)
+
+                                        if (GM_getValue('utoken')) {
+                                            GM_setValue('xtoken', jwtToken)
+                                            GM_setValue('score', data.score)
+                                            console.log("第二次登入")
+                                        } else {
+                                            console.log("第一次登入")
+                                            GM_setValue('utoken', data.token)
+                                            GM_setValue('xtoken', jwtToken)
+                                            GM_setValue('score', data.score)
+                                        }
+
+                                        //console.log("积分",setting.score)
                                     }else{
                                         msg("初始化失败")
                                     }
@@ -690,7 +699,14 @@ function doCheckbox (dom) {
 
 _self.onload = function () {
     $ = _self.jQuery || _self.aijQuery;
-    getxtoekn();
+    if (setting.utoken) {
+        //msg('脚本正在运行');
+    } else {
+        console.log(setting.utoken);
+        getxtoekn();
+        msg('欢迎使用脚本<br \>答案将在页面加载两秒后出现<br \><a href=\"https://greasyfork.org/zh-CN/scripts/397517\" target="_blank\">【脚本描述】</a><br \><a href=\"https://jq.qq.com/?_wv=1027&k=54Sj7yE\" target=\"_blank\">【交流群】</a>','red');
+    }
+    //getxtoekn();
     $.each(setting, function (key, value) {
         setting[key] = GM_getValue(key, value);
     });
@@ -745,13 +761,14 @@ _self.onload = function () {
                         method: 'POST',
                         url: turl + 'getUschooldecode.php',
                         // data:{"res":send_data},
-                        data: _self.atob("cmVzPQ==") + tserpost+window.location.href,
+                        data: _self.atob("cmVzPQ==") + tserpost+"&sign="+window.location.href,
                         headers: {
                             'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
                             'User-agent': 'Mozilla/4.0 (compatible) Greasemonkey',
                         },
                         onload: function (xhr) {
-                            console.log(tserpost)
+                            //console.log(xhr.responseText)
+
                             let rejson = JSON.parse(xhr.responseText);
                             console.log("", rejson)
                             let page = String(rejson.page);
