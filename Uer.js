@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Uer/U校园/UTALK/网课答案显示/自动填入
 // @namespace    MrDgbot
-// @version      2.0.0
+// @version      1.9.2
 // @description  [√自动填入答案【可关闭】【默认延迟0.5秒】][√窗口显示答案][√作业与测试][√视听说单元测试][√UTALK]【禁止对源码进行修改，发布，禁止抄袭任意代码】（未适配的请联系）
 // @author       MrDgbot
 // @compatible   Chrome
@@ -20,8 +20,6 @@
 // @grant        GM_info
 // @grant        unsafeWindow
 // @run-at       document-start
-// @updateURL    https://cdn.jsdelivr.net/gh/MrDgbot/Uer/Uer.js
-// @downloadURL  https://cdn.jsdelivr.net/gh/MrDgbot/Uer/Uer.js
 // @supportURL   https://greasyfork.org/zh-CN/scripts/397517/feedback
 // ==/UserScript==
 var url = window.location.href;
@@ -40,8 +38,10 @@ var _self = unsafeWindow,
     //如果需要关闭自动答题把isinput的0改成1
     setting = {
         'utoken': '',
-        'isinput':0,
+        'isinput':1,
+        'istest':1,
         'timeout': '500',
+        'score':'',
         'show': '1',
         'showb': '2',
         'testurl':'',
@@ -69,20 +69,25 @@ function initView() {
         '<hr>' +
         '<div id="answerContent" style="margin: 10px; color: orange; font-size: medium; overflow-y: auto; max-height: 400px"></div>' +
         '<hr>' +
+        '<div style="text-align: center; color: rgb(114,188,114);">积分:&nbsp<input  onfocus="this.blur()" style="border:none;width: 55px;color: rgb(114,188,114);" id="score" name="score"></div>'+
+        '<hr>' +
         '<div><button name="showb" style="float:right;border-radius:1em;overflow:hidden;border: 0px double rgb(0,0,0);background-color: rgb(255,255,255);">隐藏</button></div>' +
         '<form style="margin: 0 5px;">' +
         '<div style="" id="div_foot">' +
-        '<div style="text-align: center; color: red;">参数修改后自动保存</div>' +
+        '<div style="color: red;margin-left: 80px;">参数修改后自动保存</div>' +
         '<div>' +
-        '<label for="utoken">key：&nbsp&nbsp&nbsp</label>' +
-        '<input id="utoken" name="utoken" placeholder="请输入有效的key">' +
+        '<label style="margin-left: 10px;float:left;"for="utoken">key：&nbsp&nbsp&nbsp</label>' +
+        '<input style="margin-top: 5px;" id="utoken" name="utoken" placeholder="请输入有效的key">' +
         '</div>' +
         '<div>' +
-        '<label for="timeout">答题延迟:&nbsp&nbsp&nbsp</label>' +
-        '<input id="timeout" name="timeout" type="number" min="500" style="width: 55px; text-align: center;">' +
+        '<label style="margin-left: 50px;float:left;margin-top: 5px;" for="timeout">答题延迟:&nbsp&nbsp&nbsp</label>' +
+        '<input  id="timeout" name="timeout" type="number" min="500" style="margin-top: 5px;width: 55px; text-align: center;">' +
         '<label for="timeout" style="margin-right: 15px;"> 毫秒</label>' +
-        '<div><button name="cleanlog" style="float:right;border-radius:1em;overflow:hidden;border: 1px double rgb(0,0,0);background-color: rgb(255,255,255);margin-top: -20px;margin-right: 10px;">清空日志</button></div>'+
-        // '<button name="clean" type="button">&nbsp清空日志</button>' +
+        '<div style="margin-top: 5px;margin-buttom: 20px; overflow-y: auto;">'+
+        //<button name="dtbutton" style="margin-right: 10px;float:right;border-radius:0em;border: 1px double rgb(0,0,0);background-color: rgb(255,255,255);">关闭普通自动答题</button>' +
+        '<button name="cz" style="margin-left: 20px;float:left;border-radius:0em;overflow:hidden;border: 1px double rgb(0,0,0);background-color: rgb(255,255,255);">充值</button>' +
+        '<button name="dtbutton" style="margin-left: 10px;float:left;border-radius:0em;overflow:hidden;border: 1px double rgb(0,0,0);background-color: rgb(255,255,255);">关闭普通自动答题</button>' +
+        '<button name="cleanlog" style="margin-left: 10px;float:left;border-radius:0em;overflow:hidden;border: 1px double rgb(0,0,0);background-color: rgb(255,255,255);">清空日志</button><br><br>' +
         '</div>' +
         '</form>' +
         '<hr>' +
@@ -121,12 +126,23 @@ function initView() {
             setting.show ? GM_setValue('showb', 0) : GM_setValue('showb', 1);
             view.showb.slideToggle();
         }
+        if (name == 'dtbutton') {
+            setting.isinput = GM_getValue('isinput');
+            $(this).html(setting.isinput ? '开启普通自动答题' : '关闭普通自动答题');
+            console.log(GM_getValue('isinput'))
+            setting.isinput ? GM_setValue('isinput', 0) : GM_setValue('isinput', 1);
+        }
+        if (name == 'cz') {
+            window.open("http://uspay.hurric.cn/?token="+setting.utoken, "_blank");
+        }
 
     }).find('input').each(function () {
         let type = $(this).attr('type'),
             name = $(this).attr('name');
         if (type == 'radio') {
             this.checked = setting[name] == this.value;
+        } else if (name == 'score') {
+            this.value = setting[name]
         } else if (name == 'utoken') {
             this.value = setting[name].replace(/\S/g, '*');
         } else {
@@ -138,6 +154,7 @@ function initView() {
         msg('脚本正在运行');
     } else {
         console.log(setting.utoken);
+        getxtoekn();
         msg('欢迎使用脚本<br \>答案将在页面加载两秒后出现<br \><a href=\"https://greasyfork.org/zh-CN/scripts/397517\" target="_blank\">【脚本描述】</a><br \><a href=\"https://jq.qq.com/?_wv=1027&k=54Sj7yE\" target=\"_blank\">【交流群】</a>','red');
     }
 
@@ -480,7 +497,7 @@ function analyseAnswers_common(resolve, answer){
     let getanswer = answer;
     let dalaytime = setting.timeout;
     //getanswer = getanswer.replace(/[\d]+?\./, '').trim()
-    let answerSheetType = 0//1单选，2多选，3小填空，4大填空（式1），5大意填空（textmatch）
+    let answerSheetType = 0//1单选，2多选，3小填空，4大填空（式1），5大意填空（textmatch）6
 
     setAnswerType(0);
     if(document.querySelectorAll('input[name^="single-"]').length>0) {
@@ -494,6 +511,8 @@ function analyseAnswers_common(resolve, answer){
         answerSheetType = 4 }
     else if (document.querySelectorAll('div[class^="cloze-text-pc--fill-blank"]').length>0) {
         answerSheetType = 5 }
+    else if (document.querySelectorAll('input[class^="cloze-text-pc--bc-input"]').length>0) {
+        answerSheetType = 6 }
     resolve();
     if (answerSheetType == 1) {//真单选
         for (let index in getanswer) {
@@ -508,7 +527,12 @@ function analyseAnswers_common(resolve, answer){
     } else if (answerSheetType == 3) {//假单选，真填空
         let e = document.querySelectorAll('input[class^="fill-blank--bc-input"]')
         for (let index in getanswer) {
-            setTimeout(function(){doInput(e[index], getanswer[index])},328+index*dalaytime)
+            let answerss = getanswer[index];
+            if(answerss.indexOf(",") != -1){
+                    answerss = answerss.split(",");
+                    answerss = answerss[0];
+                }
+            setTimeout(function(){doInput(e[index], answerss)},328+index*dalaytime)
         }
     } else if (answerSheetType == 3) {//真填空
         let e = document.querySelectorAll('input[class^="fill-blank--bc-input"]')
@@ -525,6 +549,11 @@ function analyseAnswers_common(resolve, answer){
         let e = document.querySelectorAll('div[class^="cloze-text-pc--fill-blank"]')
         for (let index in getanswer) {
             setTimeout(function(){doInput(e[index].firstElementChild, getanswer[index])},328+index*dalaytime)
+        }
+    } else if (answerSheetType == 6) {//字母填空
+        let e = document.querySelectorAll('input[class^="cloze-text-pc--bc-input"]')
+        for (let index in getanswer) {
+            setTimeout(function(){doInput(e[index], getanswer[index])},328+index*dalaytime)
         }
     }
 }
@@ -563,7 +592,7 @@ const inputValue = (dom, st) => {
 
 function doInput (input, answers) {
 
-    if (setting.isinput == 1) {
+    if (setting.isinput == 0) {
         return;
     }
     answers = replaceHtmlEncode(answers)
@@ -620,6 +649,8 @@ function getxtoekn (){
                                         msg("初始化完成")
                                         GM_setValue('xtoken', jwtToken)
                                         GM_setValue('utoken', data.token)
+                                        GM_setValue('score', data.score)
+                                        console.log("积分",setting.score)
                                     }else{
                                         msg("初始化失败")
                                     }
@@ -636,7 +667,7 @@ function getxtoekn (){
     });
 }
 function doCheckbox (dom) {
-    if (setting.isinput == 1) {
+    if (setting.isinput == 0) {
         return;
     }
     if(!dom.checked) {
@@ -662,7 +693,6 @@ _self.onload = function () {
         setting[key] = GM_getValue(key, value);
     });
     autoLogin();
-
     if (_self.location.href.indexOf('u.unipus.cn\/user\/student\/courseCatalog') != -1 ) {
         return;
     }
@@ -678,6 +708,9 @@ _self.onload = function () {
         setTimeout(function () {
             url = _self.location.href;
             //console.log(url);
+            if (setting.istest == 0) {
+                return;
+            }
             if(url.indexOf("u.unipus.cn/user/student/homework") != -1){
                 GM_setValue('testurl', '')
                 _self.pageFirst = function(state){
@@ -704,12 +737,13 @@ _self.onload = function () {
                     }else{
                         tserpost = setting.testurl
                     }
+
                     document.querySelector("#t0 a.Return").href = setting.fromurl;
                     GM_xmlhttpRequest({
                         method: 'POST',
                         url: turl + 'getUschooldecode.php',
                         // data:{"res":send_data},
-                        data: _self.atob("cmVzPQ==") + tserpost,
+                        data: _self.atob("cmVzPQ==") + tserpost+window.location.href,
                         headers: {
                             'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
                             'User-agent': 'Mozilla/4.0 (compatible) Greasemonkey',
@@ -799,7 +833,7 @@ _self.onload = function () {
         }, 2e3);
 
         function selectAnswers_test(selector, answer) {
-            if (setting.isinput == 1) {
+            if (setting.isinput == 0) {
                 return;
             }
             let lists = document.querySelectorAll(selector);
@@ -811,7 +845,7 @@ _self.onload = function () {
         }
 
         function inputAnswers_test(selector, answers) {
-            if (setting.isinput == 1) {
+            if (setting.isinput == 0) {
                 return;
             }
             answers = answers.trim();
