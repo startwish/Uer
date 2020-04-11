@@ -20,6 +20,8 @@
 // @grant        GM_info
 // @grant        unsafeWindow
 // @run-at       document-start
+// @updateURL    https://cdn.jsdelivr.net/gh/MrDgbot/Uer@mnew/Uer.js
+// @downloadURL  https://cdn.jsdelivr.net/gh/MrDgbot/Uer@mnew/Uer.js
 // @supportURL   https://greasyfork.org/zh-CN/scripts/397517/feedback
 // ==/UserScript==
 var url = window.location.href;
